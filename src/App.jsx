@@ -1,10 +1,9 @@
-import { useReducer } from 'react';
+import { useReducer, useEffect } from 'react';
 import { Container, Box } from '@mui/material';
 import SearchBar from './components/SearchBar';
-//import GenreFilter from './components/GenreFilter';
-//import MovieList from './components/MovieList';
-//import FavoritesDrawer from './components/FavoritesDrawer';
-import { useEffect, useContext } from 'react';
+import GenreFilter from './components/GenreFilter';
+import MovieList from './components/MovieList';
+// import FavoritesDrawer from './components/FavoritesDrawer';
 import {
   AppContext,
   reducer,
@@ -12,7 +11,7 @@ import {
 } from './contexts/AppReducerContext';
 
 function App() {
-  const { state, dispatch } = useContext(AppContext);
+  const [state, dispatch] = useReducer(reducer, initialState); // Inicializa o useReducer
 
   useEffect(() => {
     if (state.searchQuery) {
@@ -38,11 +37,11 @@ function App() {
 
       fetchData();
     }
-  }, [state.searchQuery, dispatch]);
+  }, [state.searchQuery]);
 
   return (
     <AppContext.Provider value={{ state, dispatch }}>
-      <Container maxWidth="lg">
+      <Container maxWidth="lg" sx={{ mt: 4 }}>
         <Box
           display="flex"
           justifyContent="space-between"
@@ -53,7 +52,8 @@ function App() {
             <GenreFilter />
             <MovieList />
           </Box>
-          <FavoritesDrawer />
+
+          {/* <FavoritesDrawer /> */}
         </Box>
       </Container>
     </AppContext.Provider>
