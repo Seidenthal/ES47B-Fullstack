@@ -3,7 +3,8 @@ import { Container, Box } from '@mui/material';
 import SearchBar from './components/SearchBar';
 import GenreFilter from './components/GenreFilter';
 import MovieList from './components/MovieList';
-// import FavoritesDrawer from './components/FavoritesDrawer'; // futuro
+import FavoritesToggleButton from './components/FavoriteToggleButton';
+import FavoritesDrawer from './components/FavoritesDrawer';
 import {
   AppContext,
   reducer,
@@ -55,13 +56,14 @@ function App() {
             <Box flex={1}>
               <GenreFilter />
             </Box>
-            {/* <FavoritesToggleButton /> */}
+            <FavoritesToggleButton />
           </Box>
 
           {/* Lista de filmes/séries */}
           <MovieList />
         </Box>
       </Container>
+      <FavoritesDrawer />
     </AppContext.Provider>
   );
 }
