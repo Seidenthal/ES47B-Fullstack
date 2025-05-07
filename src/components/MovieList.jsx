@@ -5,21 +5,25 @@ import MovieCard from './MovieCard';
 
 export default function MovieList() {
   const { state } = useContext(AppContext);
-  const { movies, searchTerm, genre } = state;
+  const { movies, searchQuery, genre } = state;
 
-  // Filtro por nome
-  const nameFiltered = movies.filter((item) => {
-    const title = item.title || item.name || '';
-    return title.toLowerCase().includes(searchTerm.toLowerCase());
-  });
+  // Se searchQuery estiver vazio, mantemos todos os filmes
+  const nameFiltered =
+    searchQuery.trim() === ''
+      ? movies
+      : movies.filter((item) => {
+          const title = item.title || item.name || '';
+          return title.toLowerCase().includes(searchQuery.toLowerCase());
+        });
 
   // Filtro por gênero (respeitando se é filme ou série)
   const filteredResults = nameFiltered.filter((item) => {
     if (!genre || (genre.movieId === 0 && genre.tvId === 0)) return true;
-
-    const genreIdToCheck =
-      item.media_type === 'movie' ? genre.movieId : genre.tvId;
-    return item.genre_ids?.includes(genreIdToCheck);
+  
+    const isMovie = item.media_type === 'movie' || item.title;
+    const selectedGenreId = isMovie ? genre.movieId : genre.tvId;
+  
+    return item.genre_ids?.includes(selectedGenreId);
   });
 
   if (filteredResults.length === 0) {

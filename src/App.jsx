@@ -3,12 +3,8 @@ import { Container, Box } from '@mui/material';
 import SearchBar from './components/SearchBar';
 import GenreFilter from './components/GenreFilter';
 import MovieList from './components/MovieList';
+import { AppContext, reducer, initialState } from './contexts/AppReducerContext';
 // import FavoritesDrawer from './components/FavoritesDrawer';
-import {
-  AppContext,
-  reducer,
-  initialState,
-} from './contexts/AppReducerContext';
 
 function App() {
   const [state, dispatch] = useReducer(reducer, initialState); // Inicializa o useReducer
@@ -42,17 +38,12 @@ function App() {
   return (
     <AppContext.Provider value={{ state, dispatch }}>
       <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Box
-          display="flex"
-          justifyContent="space-between"
-          alignItems="flex-start"
-        >
+        <Box display="flex" justifyContent="space-between" alignItems="flex-start">
           <Box flexGrow={1}>
             <SearchBar />
             <GenreFilter />
             <MovieList />
           </Box>
-
           {/* <FavoritesDrawer /> */}
         </Box>
       </Container>
