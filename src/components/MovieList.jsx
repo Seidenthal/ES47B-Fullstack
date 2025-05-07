@@ -1,5 +1,5 @@
 import { useContext } from 'react';
-import { Grid, Typography } from '@mui/material';
+import { Box, Typography } from '@mui/material';
 import { AppContext } from '../contexts/AppReducerContext';
 import MovieCard from './MovieCard';
 
@@ -7,7 +7,6 @@ export default function MovieList() {
   const { state } = useContext(AppContext);
   const { movies, searchQuery, genre } = state;
 
-  // Se searchQuery estiver vazio, mantemos todos os filmes
   const nameFiltered =
     searchQuery.trim() === ''
       ? movies
@@ -16,13 +15,12 @@ export default function MovieList() {
           return title.toLowerCase().includes(searchQuery.toLowerCase());
         });
 
-  // Filtro por gênero (respeitando se é filme ou série)
   const filteredResults = nameFiltered.filter((item) => {
     if (!genre || (genre.movieId === 0 && genre.tvId === 0)) return true;
-  
+
     const isMovie = item.media_type === 'movie' || item.title;
     const selectedGenreId = isMovie ? genre.movieId : genre.tvId;
-  
+
     return item.genre_ids?.includes(selectedGenreId);
   });
 
@@ -33,19 +31,14 @@ export default function MovieList() {
   }
 
   return (
-    <Grid container spacing={2}>
+    <Box
+      display="grid"
+      gridTemplateColumns="repeat(auto-fit, minmax(220px, 1fr))"
+      gap={2}
+    >
       {filteredResults.map((item) => (
-        <Grid
-          item
-          xs={12}
-          sm={6}
-          md={4}
-          lg={3}
-          key={`${item.id}-${item.media_type}`}
-        >
-          <MovieCard item={item} />
-        </Grid>
+        <MovieCard key={`${item.id}-${item.media_type}`} item={item} />
       ))}
-    </Grid>
+    </Box>
   );
 }

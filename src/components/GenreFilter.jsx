@@ -34,7 +34,28 @@ export default function GenreFilter() {
   };
 
   return (
-    <FormControl fullWidth margin="normal">
+    <FormControl
+      fullWidth
+      margin="normal"
+      sx={{
+        '& label': { color: '#ccc' },
+        '& .MuiOutlinedInput-root': {
+          color: '#fff',
+          '& fieldset': {
+            borderColor: '#888',
+          },
+          '&:hover fieldset': {
+            borderColor: '#fff',
+          },
+          '&.Mui-focused fieldset': {
+            borderColor: '#42a5f5',
+          },
+          '& svg': {
+            color: '#42a5f5',
+          },
+        },
+      }}
+    >
       <InputLabel>Gênero</InputLabel>
       <Select
         value={state.genre?.label || 'Todos'}

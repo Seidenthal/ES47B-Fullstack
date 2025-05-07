@@ -24,11 +24,26 @@ export default function SearchBar() {
       value={inputValue}
       onChange={(e) => setInputValue(e.target.value)}
       onKeyPress={handleKeyPress}
+      sx={{
+        '& label': { color: '#ccc' }, // cor da label
+        '& input': { color: '#fff' }, // cor do texto digitado
+        '& .MuiOutlinedInput-root': {
+          '& fieldset': {
+            borderColor: '#888', // borda normal
+          },
+          '&:hover fieldset': {
+            borderColor: '#fff', // borda no hover
+          },
+          '&.Mui-focused fieldset': {
+            borderColor: '#42a5f5', // borda quando focado
+          },
+        },
+      }}
       InputProps={{
         endAdornment: (
           <InputAdornment position="end">
             <IconButton onClick={handleSearch} aria-label="search">
-              <SearchIcon />
+              <SearchIcon sx={{ color: '#42a5f5' }} /> {/* cor do ícone */}
             </IconButton>
           </InputAdornment>
         ),
