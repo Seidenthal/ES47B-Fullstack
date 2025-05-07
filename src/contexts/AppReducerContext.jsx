@@ -7,7 +7,7 @@ export const initialState = {
   movies: [],
   favorites: [],
   searchQuery: '',
-  genre: '',
+  genre: { movieId: 0, tvId: 0 },
   favoritesSearch: '',
   drawerOpen: false,
 };

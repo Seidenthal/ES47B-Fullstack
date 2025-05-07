@@ -18,7 +18,7 @@ function App() {
       const fetchData = async () => {
         try {
           const res = await fetch(
-            `https://api.themoviedb.org/3/search/multi?api_key=YOUR_API_KEY&query=${encodeURIComponent(
+            `https://api.themoviedb.org/3/search/multi?api_key=afa87e0b93ec3b58cd0c858af4c4c399&query=${encodeURIComponent(
               state.searchQuery,
             )}&language=pt-BR`,
           );
