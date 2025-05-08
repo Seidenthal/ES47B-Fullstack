@@ -26,11 +26,15 @@ export default function MovieCard({ item, compact = false }) {
   const isFavorite = state.favorites.some((f) => f.id === item.id);
 
   const [open, setOpen] = useState(false);
+  const [modalBgColor, setModalBgColor] = useState('');
   const [overview, setOverview] = useState('');
   const [details, setDetails] = useState(null);
   const [credits, setCredits] = useState(null);
 
   const handleOpen = () => {
+    const colors = ['lightcyan', 'mediumslateblue', 'powderblue'];
+    const randomColor = colors[Math.floor(Math.random() * colors.length)];
+    setModalBgColor(randomColor);
     setOpen(true);
     fetchMovieDetails();
   };
@@ -104,7 +108,7 @@ export default function MovieCard({ item, compact = false }) {
   const imageUrl = poster_path
     ? `https://image.tmdb.org/t/p/w500${poster_path}`
     : 'https://via.placeholder.com/500x750?text=Sem+Imagem';
-
+  // cores: lightcyan, mediumslateblue, powderblue
   return (
     <Box onClick={handleOpen} sx={{ cursor: 'pointer' }}>
       <Card
@@ -117,7 +121,14 @@ export default function MovieCard({ item, compact = false }) {
           flexDirection: 'column',
         }}
       >
-        <Modal open={open} onClose={handleClose}>
+        <Modal
+          open={open}
+          onClose={handleClose}
+          sx={{
+            backdropFilter: 'blur(5px)',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }}
+        >
           <Box
             sx={{
               position: 'absolute',
@@ -126,7 +137,7 @@ export default function MovieCard({ item, compact = false }) {
               transform: 'translate(-50%, -50%)',
               width: '80%',
               maxWidth: 800,
-              bgcolor: 'background.paper',
+              bgcolor: modalBgColor,
               borderRadius: 2,
               boxShadow: 24,
               p: 4,
