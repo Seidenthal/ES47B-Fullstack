@@ -32,7 +32,15 @@ export default function FavoritesDrawer() {
       open={state.drawerOpen}
       onClose={() => dispatch({ type: 'TOGGLE_DRAWER' })}
     >
-      <Box sx={{ width: 320, padding: 2 }}>
+      <Box
+        sx={{
+          width: '30vw',
+          minWidth: 320,
+          padding: 2,
+          height: '100%',
+          boxSizing: 'border-box',
+        }}
+      >
         <Box
           display="flex"
           justifyContent="space-between"
@@ -64,14 +72,20 @@ export default function FavoritesDrawer() {
         {filtered.length === 0 ? (
           <Typography variant="body2">Nenhum favorito encontrado.</Typography>
         ) : (
-          filtered.map((item) => (
-            <MovieCard
-              key={item.id}
-              item={item}
-              compact
-              onRemove={() => handleRemove(item.id)}
-            />
-          ))
+          <Box
+            display="grid"
+            gridTemplateColumns="repeat(auto-fit, minmax(140px, 1fr))"
+            gap={2}
+          >
+            {filtered.map((item) => (
+              <MovieCard
+                key={item.id}
+                item={item}
+                compact
+                onRemove={() => handleRemove(item.id)}
+              />
+            ))}
+          </Box>
         )}
       </Box>
     </Drawer>

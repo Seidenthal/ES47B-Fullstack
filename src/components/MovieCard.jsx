@@ -4,10 +4,28 @@ import {
   Typography,
   CardMedia,
   IconButton,
+  Tooltip,
 } from '@mui/material';
-import { FavoriteBorder } from '@mui/icons-material';
+import FavoriteIcon from '@mui/icons-material/Favorite';
+import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { useContext } from 'react';
+import { AppContext } from '../contexts/AppReducerContext';
 
-export default function MovieCard({ item }) {
+export default function MovieCard({ item, compact = false }) {
+  const { state, dispatch } = useContext(AppContext);
+  const isFavorite = state.favorites.some((f) => f.id === item.id);
+
+  const handleAddFavorite = () => {
+    if (!isFavorite) {
+      dispatch({ type: 'ADD_FAVORITE', payload: item });
+    }
+  };
+
+  const handleRemoveFavorite = () => {
+    dispatch({ type: 'REMOVE_FAVORITE', payload: item.id });
+  };
+
   const {
     title,
     name,
@@ -25,8 +43,8 @@ export default function MovieCard({ item }) {
   return (
     <Card
       sx={{
-        maxWidth: 200,
-        height: 460,
+        maxWidth: compact ? 160 : 200,
+        height: compact ? 320 : 460,
         margin: 1,
         position: 'relative',
         display: 'flex',
@@ -35,7 +53,7 @@ export default function MovieCard({ item }) {
     >
       <CardMedia
         component="img"
-        height="300"
+        height={compact ? '200' : '300'}
         image={imageUrl}
         alt={title || name}
         sx={{ objectFit: 'cover' }}
@@ -46,27 +64,61 @@ export default function MovieCard({ item }) {
           display: 'flex',
           flexDirection: 'column',
           justifyContent: 'space-between',
+          padding: 1,
         }}
       >
         <div>
-          <Typography variant="subtitle1" fontWeight="bold" noWrap>
+          <Typography
+            variant={compact ? 'subtitle2' : 'subtitle1'}
+            fontWeight="bold"
+            noWrap
+          >
             {title || name}
           </Typography>
-          <Typography variant="body2" color="text.secondary">
+          <Typography variant="caption" color="text.secondary" noWrap>
             {media_type === 'movie' ? 'Filme' : 'Série'}
           </Typography>
-          <Typography variant="body2">
-            Lançamento: {release_date || first_air_date || 'N/A'}
-          </Typography>
-          <Typography variant="body2">Nota: {vote_average || 'N/A'}</Typography>
+          {!compact && (
+            <>
+              <Typography variant="body2">
+                Lançamento: {release_date || first_air_date || 'N/A'}
+              </Typography>
+              <Typography variant="body2">
+                Nota: {vote_average || 'N/A'}
+              </Typography>
+            </>
+          )}
         </div>
       </CardContent>
-      <IconButton
-        sx={{ position: 'absolute', top: 5, right: 5 }}
-        aria-label="favoritar"
+
+      {/* Botão de ação no canto superior direito */}
+      <Tooltip
+        title={
+          compact
+            ? 'Remover dos favoritos'
+            : isFavorite
+            ? 'Remover dos favoritos'
+            : 'Adicionar aos favoritos'
+        }
       >
-        <FavoriteBorder />
-      </IconButton>
+        <IconButton
+          onClick={compact ? handleRemoveFavorite : handleAddFavorite}
+          sx={{
+            position: 'absolute',
+            top: 5,
+            right: 5,
+            color: 'error.main', // vermelho para ambos
+          }}
+        >
+          {compact ? (
+            <DeleteIcon />
+          ) : isFavorite ? (
+            <FavoriteIcon />
+          ) : (
+            <FavoriteBorderIcon />
+          )}
+        </IconButton>
+      </Tooltip>
     </Card>
   );
 }

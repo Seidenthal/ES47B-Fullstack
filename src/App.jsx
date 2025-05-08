@@ -49,14 +49,16 @@ function App() {
       <Container maxWidth={false} disableGutters sx={{ mt: 4, px: 4 }}>
         <Box display="flex" flexDirection="column" alignItems="stretch" gap={3}>
           {/* Filtros lado a lado */}
-          <Box display="flex" gap={2} alignItems="flex-start" flexWrap="wrap">
+          <Box display="flex" gap={2} alignItems="center" flexWrap="wrap">
             <Box flex={1}>
               <SearchBar />
             </Box>
             <Box flex={1}>
               <GenreFilter />
             </Box>
-            <FavoritesToggleButton />
+            <Box sx={{}}>
+              <FavoritesToggleButton />
+            </Box>
           </Box>
 
           {/* Lista de filmes/séries */}
