@@ -31,10 +31,23 @@ export function reducer(state, action) {
       return { ...state, drawerOpen: !state.drawerOpen };
     case 'SET_FAVORITES_SEARCH':
       return { ...state, favoritesSearch: action.payload };
+    case 'ADD_MOVIES':
+      const existingKeys = new Set(
+        state.movies.map((item) => `${item.id}-${item.media_type}`)
+      );
+
+      const newUniqueMovies = action.payload.filter(
+        (item) => !existingKeys.has(`${item.id}-${item.media_type}`)
+      );
+
+      return {
+        ...state,
+        movies: [...state.movies, ...newUniqueMovies],
+      };
     default:
       return state;
   }
-  
+
 }
 
 export function AppProvider({ children }) {

@@ -15,6 +15,7 @@ import FavoriteBorderIcon from '@mui/icons-material/FavoriteBorder';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { AppContext } from '../contexts/AppReducerContext';
 
+
 function formatDate(dateString) {
   if (!dateString) return 'N/A';
   const [year, month, day] = dateString.split('-');
@@ -103,7 +104,7 @@ export default function MovieCard({ item, compact = false }) {
 
       fetchDetails();
     }
-  }, [open, item.id, media_type]);
+  }, [open, item.id, media_type]);  
 
   const imageUrl = poster_path
     ? `https://image.tmdb.org/t/p/w500${poster_path}`
