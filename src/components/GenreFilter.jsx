@@ -36,7 +36,7 @@ export default function GenreFilter() {
   return (
     <FormControl
       fullWidth
-      margin="normal"
+      margin="none"
       sx={{
         '& label': { color: '#ccc' },
         '& .MuiOutlinedInput-root': {

@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { AppContext } from '../contexts/AppReducerContext';
 import MovieCard from './MovieCard';
@@ -15,26 +15,49 @@ export default function MovieList() {
 
     setLoading(true);
     try {
+      const apiKey = 'afa87e0b93ec3b58cd0c858af4c4c399';
       let url = '';
 
       if (searchQuery) {
-        url = `https://api.themoviedb.org/3/search/multi?api_key=afa87e0b93ec3b58cd0c858af4c4c399&query=${encodeURIComponent(
-          searchQuery
+        // Busca por nome
+        url = `https://api.themoviedb.org/3/search/multi?api_key=${apiKey}&query=${encodeURIComponent(
+          searchQuery,
         )}&language=pt-BR&page=${newPage}`;
+      } else if (
+        genre &&
+        ((genre.movieId !== 0 && genre.movieId !== undefined) ||
+          (genre.tvId !== 0 && genre.tvId !== undefined))
+      ) {
+        // Filtro por gênero
+        const isMovie = genre.movieId !== 0 && genre.movieId !== undefined;
+        const type = isMovie ? 'movie' : 'tv';
+        const genreId = isMovie ? genre.movieId : genre.tvId;
+
+        url = `https://api.themoviedb.org/3/discover/${type}?api_key=${apiKey}&with_genres=${genreId}&language=pt-BR&page=${newPage}`;
       } else {
-        url = `https://api.themoviedb.org/3/trending/all/week?api_key=afa87e0b93ec3b58cd0c858af4c4c399&language=pt-BR&page=${newPage}`;
+        // Tendências da semana
+        url = `https://api.themoviedb.org/3/trending/all/week?api_key=${apiKey}&language=pt-BR&page=${newPage}`;
       }
 
       const res = await fetch(url);
       const data = await res.json();
 
-      const filteredResults = data.results.filter(
-        (item) => item.media_type === 'movie' || item.media_type === 'tv'
-      );
+      const results = data.results
+        .filter(
+          (item) =>
+            item.media_type === 'movie' ||
+            item.media_type === 'tv' ||
+            item.title ||
+            item.name,
+        )
+        .map((item) => ({
+          ...item,
+          media_type: item.media_type || (genre?.movieId ? 'movie' : 'tv'),
+        }));
 
       dispatch({
         type: newPage === 1 ? 'SET_MOVIES' : 'ADD_MOVIES',
-        payload: filteredResults,
+        payload: results,
       });
 
       setPage(newPage);
@@ -45,12 +68,14 @@ export default function MovieList() {
     }
   };
 
+  // Carrega ao montar ou ao mudar busca/filtro
   useEffect(() => {
-    // Quando a busca mudar, reseta tudo
     setPage(1);
     fetchMovies(1);
-  }, [searchQuery]);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [searchQuery, genre]);
 
+  // Rola automaticamente para carregar mais
   useEffect(() => {
     const handleScroll = () => {
       if (
@@ -64,27 +89,9 @@ export default function MovieList() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [page, loading, searchQuery]);
+  }, [page, loading, searchQuery, genre]);
 
-  // FILTRO POR NOME E GÊNERO
-  const nameFiltered =
-    searchQuery.trim() === ''
-      ? movies
-      : movies.filter((item) => {
-          const title = item.title || item.name || '';
-          return title.toLowerCase().includes(searchQuery.toLowerCase());
-        });
-
-  const filteredResults = nameFiltered.filter((item) => {
-    if (!genre || (genre.movieId === 0 && genre.tvId === 0)) return true;
-
-    const isMovie = item.media_type === 'movie' || item.title;
-    const selectedGenreId = isMovie ? genre.movieId : genre.tvId;
-
-    return item.genre_ids?.includes(selectedGenreId);
-  });
-
-  if (filteredResults.length === 0) {
+  if (!movies || movies.length === 0) {
     return (
       <Typography variant="body1">Nenhum resultado encontrado.</Typography>
     );
@@ -96,7 +103,7 @@ export default function MovieList() {
       gridTemplateColumns="repeat(auto-fit, minmax(220px, 1fr))"
       gap={2}
     >
-      {filteredResults.map((item) => (
+      {movies.map((item) => (
         <MovieCard key={`${item.id}-${item.media_type}`} item={item} />
       ))}
     </Box>

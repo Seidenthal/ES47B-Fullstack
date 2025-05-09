@@ -17,7 +17,7 @@ export default function FavoritesToggleButton() {
         <IconButton
           onClick={() => dispatch({ type: 'TOGGLE_DRAWER' })}
           sx={{
-            height: 56, // um pouco maior para compensar o TextField
+            height: 56,
             width: 56,
             border: '1px solid #888',
             borderRadius: 2,

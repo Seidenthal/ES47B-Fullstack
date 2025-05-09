@@ -20,7 +20,7 @@ export default function SearchBar() {
       label="Buscar por nome"
       variant="outlined"
       fullWidth
-      margin="normal"
+      margin="none"
       value={inputValue}
       onChange={(e) => setInputValue(e.target.value)}
       onKeyPress={handleKeyPress}
