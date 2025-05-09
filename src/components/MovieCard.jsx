@@ -88,19 +88,28 @@ export default function MovieCard({ item, compact = false }) {
 
   useEffect(() => {
     if (open) {
-      const fetchDetails = async () => {
-        try {
-          const type = media_type === 'movie' ? 'movie' : 'tv';
-          const response = fetch(
-            `https://api.themoviedb.org/3/${type}/${item.id}?api_key=afa87e0b93ec3b58cd0c858af4c4c399&append_to_response=credits&language=pt-BR`,
-          );
-          setDetails(response.data);
-          setOverview(response.data.overview);
-          setCredits(response.data.credits);
-        } catch (error) {
-          console.error('Erro ao buscar detalhes:', error);
-        }
-      };
+ const fetchDetails = async () => {
+  try {
+    const res = await fetch(
+      `https://api.themoviedb.org/3/${item.media_type}/${item.id}?api_key=afa87e0b93ec3b58cd0c858af4c4c399&language=pt-BR`
+    );
+    const data = await res.json();
+
+    if (!data || !data.overview) {
+      console.warn('Detalhes incompletos ou ausência de overview:', data);
+    }
+
+    setDetails({
+      title: data.title || data.name || 'Título não disponível',
+      overview: data.overview || 'Sinopse indisponível no momento.',
+      genres: data.genres?.map((g) => g.name).join(', ') || 'Gêneros não informados',
+      releaseDate: data.release_date || data.first_air_date || 'Data não disponível',
+    });
+  } catch (err) {
+    console.error('Erro ao buscar detalhes:', err);
+  }
+};
+
 
       fetchDetails();
     }
