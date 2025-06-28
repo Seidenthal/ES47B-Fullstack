@@ -28,12 +28,43 @@ export default function MovieList() {
         ((genre.movieId !== 0 && genre.movieId !== undefined) ||
           (genre.tvId !== 0 && genre.tvId !== undefined))
       ) {
-        // Filtro por gênero
-        const isMovie = genre.movieId !== 0 && genre.movieId !== undefined;
-        const type = isMovie ? 'movie' : 'tv';
-        const genreId = isMovie ? genre.movieId : genre.tvId;
+        const urls = [];
 
-        url = `https://api.themoviedb.org/3/discover/${type}?api_key=${apiKey}&with_genres=${genreId}&language=pt-BR&page=${newPage}`;
+        if (genre.movieId !== 0 && genre.movieId !== undefined) {
+          urls.push(
+            `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genre.movieId}&language=pt-BR&page=${newPage}`
+          );
+        }
+
+        if (genre.tvId !== 0 && genre.tvId !== undefined) {
+          urls.push(
+            `https://api.themoviedb.org/3/discover/tv?api_key=${apiKey}&with_genres=${genre.tvId}&language=pt-BR&page=${newPage}`
+          );
+        }
+
+        const results = [];
+
+        for (const url of urls) {
+          const res = await fetch(url);
+          const data = await res.json();
+          const type = url.includes('/movie') ? 'movie' : 'tv';
+
+          const formattedResults = data.results.map((item) => ({
+            ...item,
+            media_type: item.media_type || type,
+          }));
+
+          results.push(...formattedResults);
+        }
+
+        dispatch({
+          type: newPage === 1 ? 'SET_MOVIES' : 'ADD_MOVIES',
+          payload: results,
+        });
+
+        setPage(newPage);
+        setLoading(false);
+        return;
       } else {
         // Tendências da semana
         url = `https://api.themoviedb.org/3/trending/all/week?api_key=${apiKey}&language=pt-BR&page=${newPage}`;
@@ -80,7 +111,7 @@ export default function MovieList() {
     const handleScroll = () => {
       if (
         window.innerHeight + document.documentElement.scrollTop + 100 >=
-          document.documentElement.scrollHeight &&
+        document.documentElement.scrollHeight &&
         !loading
       ) {
         fetchMovies(page + 1);
