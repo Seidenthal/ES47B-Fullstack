@@ -7,18 +7,40 @@ import FavoritesToggleButton from './components/FavoriteToggleButton';
 import FavoritesDrawer from './components/FavoritesDrawer';
 import LoginIcon from '@mui/icons-material/Login';
 import { useNavigate } from 'react-router-dom';
-import {
-  AppContext,
-  reducer,
-  initialState,
-} from './contexts/AppReducerContext';
+import { AppContext} from './contexts/AppReducerContext';
+import { useContext,useEffect } from 'react';
 
 function App() {
-  const [state, dispatch] = useReducer(reducer, initialState);
+  const { state, dispatch } = useContext(AppContext);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const fetchUserFavorites = async () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          // ...busque os favoritos no seu backend
+          const response = await fetch('http://localhost:3001/favorites', {
+            headers: { 'Authorization': `Bearer ${token}` }
+          });
+          if (response.ok) {
+            const favoriteMovies = await response.json();
+            dispatch({ type: 'SET_FAVORITES', payload: favoriteMovies });
+          } else {
+            // Se o token for inválido, limpe o localStorage
+            localStorage.removeItem('token');
+          }
+        } catch (error) {
+          console.error('Erro ao buscar favoritos:', error);
+        }
+      }
+    };
+    fetchUserFavorites();
+  }, [dispatch]);
+
   return (
-    <AppContext.Provider value={{ state, dispatch }}>
+    // Adicionado um Fragment <> para agrupar os elementos irmãos
+    <>
       <Container maxWidth={false} disableGutters sx={{ mt: '120px', px: 4 }}>
         <Box display="flex" flexDirection="column" alignItems="stretch" gap={3}>
           <Box
@@ -66,7 +88,7 @@ function App() {
         </Box>
       </Container>
       <FavoritesDrawer />
-    </AppContext.Provider>
+    </>
   );
 }
 

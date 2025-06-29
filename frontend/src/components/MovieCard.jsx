@@ -32,6 +32,7 @@ export default function MovieCard({ item, compact = false }) {
   const [details, setDetails] = useState(null);
   const [credits, setCredits] = useState(null);
 
+
   const handleOpen = () => {
     const colors = ['lightcyan', 'mediumslateblue', 'powderblue'];
     const randomColor = colors[Math.floor(Math.random() * colors.length)];
@@ -44,9 +45,50 @@ export default function MovieCard({ item, compact = false }) {
     setOpen(false);
   };
 
-  const handleAddFavorite = () => {
-    if (!isFavorite) {
+  const handleAddFavorite = async () => {
+    // 1. Pega o token para verificar se o usuário está logado
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Você precisa estar logado para adicionar favoritos!');
+      // Idealmente, você pode redirecionar para a página de login aqui
+      // import { useNavigate } from 'react-router-dom';
+      // const navigate = useNavigate();
+      // navigate('/login');
+      return;
+    }
+
+    // 2. Verifica se o filme já não é um favorito antes de fazer a chamada
+    if (isFavorite) {
+      console.log('Este filme já está nos favoritos.');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:3001/favorites', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          movie_tmdb_id: item.id,
+          title: item.title || item.name,
+          poster_url: item.poster_path,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Falha ao salvar o favorito no servidor.');
+      }
+
+      // 4. Se a chamada ao backend for bem-sucedida, atualiza o estado local
+      console.log('Filme salvo no backend com sucesso!');
       dispatch({ type: 'ADD_FAVORITE', payload: item });
+
+    } catch (err) {
+      console.error('Erro em handleAddFavorite:', err);
+      alert(`Não foi possível adicionar aos favoritos: ${err.message}`);
     }
   };
 
@@ -58,6 +100,7 @@ export default function MovieCard({ item, compact = false }) {
     title,
     name,
     poster_path,
+    poster_url,
     vote_average,
     release_date,
     first_air_date,
@@ -88,34 +131,36 @@ export default function MovieCard({ item, compact = false }) {
 
   useEffect(() => {
     if (open) {
- const fetchDetails = async () => {
-  try {
-    const res = await fetch(
-      `https://api.themoviedb.org/3/${item.media_type}/${item.id}?api_key=afa87e0b93ec3b58cd0c858af4c4c399&language=pt-BR`
-    );
-    const data = await res.json();
+      const fetchDetails = async () => {
+        try {
+          const res = await fetch(
+            `https://api.themoviedb.org/3/${item.media_type}/${item.id}?api_key=afa87e0b93ec3b58cd0c858af4c4c399&language=pt-BR`
+          );
+          const data = await res.json();
 
-    if (!data || !data.overview) {
-      console.warn('Detalhes incompletos ou ausência de overview:', data);
-    }
+          if (!data || !data.overview) {
+            console.warn('Detalhes incompletos ou ausência de overview:', data);
+          }
 
-    setDetails({
-      title: data.title || data.name || 'Título não disponível',
-      overview: data.overview || 'Sinopse indisponível no momento.',
-      genres: data.genres?.map((g) => g.name).join(', ') || 'Gêneros não informados',
-      releaseDate: data.release_date || data.first_air_date || 'Data não disponível',
-    });
-  } catch (err) {
-    console.error('Erro ao buscar detalhes:', err);
-  }
-};
+          setDetails({
+            title: data.title || data.name || 'Título não disponível',
+            overview: data.overview || 'Sinopse indisponível no momento.',
+            genres: data.genres?.map((g) => g.name).join(', ') || 'Gêneros não informados',
+            releaseDate: data.release_date || data.first_air_date || 'Data não disponível',
+          });
+        } catch (err) {
+          console.error('Erro ao buscar detalhes:', err);
+        }
+      };
 
 
       fetchDetails();
     }
-  }, [open, item.id, media_type]);  
+  }, [open, item.id, media_type]);
 
-  const imageUrl = poster_path
+  const imagePath = poster_path || poster_url;
+
+  const imageUrl = imagePath
     ? `https://image.tmdb.org/t/p/w500${poster_path}`
     : 'https://via.placeholder.com/500x750?text=Sem+Imagem';
   // cores: lightcyan, mediumslateblue, powderblue
@@ -309,15 +354,13 @@ export default function MovieCard({ item, compact = false }) {
                         height: '100%',
                         borderRadius: '50%',
                         background: vote_average
-                          ? `conic-gradient(${
-                              vote_average > 7
-                                ? 'green'
-                                : vote_average >= 5
-                                ? 'goldenrod'
-                                : 'red'
-                            } ${vote_average * 10}%, transparent ${
-                              vote_average * 10
-                            }%)`
+                          ? `conic-gradient(${vote_average > 7
+                            ? 'green'
+                            : vote_average >= 5
+                              ? 'goldenrod'
+                              : 'red'
+                          } ${vote_average * 10}%, transparent ${vote_average * 10
+                          }%)`
                           : 'transparent',
                         mask: 'radial-gradient(circle, transparent 60%, black 61%)',
                         WebkitMask:
@@ -345,8 +388,8 @@ export default function MovieCard({ item, compact = false }) {
             compact
               ? 'Remover dos favoritos'
               : isFavorite
-              ? 'Remover dos favoritos'
-              : 'Adicionar aos favoritos'
+                ? 'Remover dos favoritos'
+                : 'Adicionar aos favoritos'
           }
         >
           <IconButton

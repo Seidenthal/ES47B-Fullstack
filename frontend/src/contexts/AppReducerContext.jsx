@@ -16,6 +16,8 @@ export function reducer(state, action) {
   switch (action.type) {
     case 'SET_MOVIES':
       return { ...state, movies: action.payload };
+    case 'SET_FAVORITES':
+      return { ...state, favorites: action.payload };
     case 'ADD_FAVORITE':
       return { ...state, favorites: [...state.favorites, action.payload] };
     case 'REMOVE_FAVORITE':
