@@ -1,5 +1,8 @@
-const Database = require('better-sqlite3');
-const db = new Database('./users.sqlite');
+import Database from 'better-sqlite3';
+
+const db = new Database('./db.sqlite', { verbose: console.log});
+
+
 
 // Inicializa tabela se não existir
 db.prepare(
@@ -12,4 +15,4 @@ db.prepare(
 `,
 ).run();
 
-module.exports = db;
+export default db;
