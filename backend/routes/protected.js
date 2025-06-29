@@ -9,10 +9,15 @@ router.use((req, res, next) => {
   if (!token) return res.sendStatus(401);
 
   try {
-    req.user = jwt.verify(token, SECRET);
+    const decoded = jwt.verify(token, SECRET);
+    req.user = decoded; 
     next();
-  } catch {
-    res.sendStatus(403);
+  } catch (err) {
+
+    console.error('Erro na verificação do JWT:', err.message);
+
+
+    res.status(403).json({ message: 'Token inválido ou expirado.' });
   }
 });
 

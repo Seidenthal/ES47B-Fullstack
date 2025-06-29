@@ -4,12 +4,16 @@ const app = express();
 
 import authRoutes from './routes/auth.js';
 import protectedRoutes from './routes/protected.js';
+import movieRoutes from './routes/movieRoutes.js';
+
 
 app.use(cors());
 app.use(express.json());
 app.use(authRoutes);
 app.use(protectedRoutes);
+app.use(movieRoutes);
 
-app.listen(3001, () =>
-  console.log('Servidor rodando em http://localhost:3001'),
-);
+const PORT = 3001;
+app.listen(PORT, () => {
+  console.log(`Servidor rodando em ${PORT}`);
+});

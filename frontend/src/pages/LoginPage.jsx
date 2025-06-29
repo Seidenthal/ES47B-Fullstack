@@ -7,8 +7,8 @@ import {
   Container,
   Paper,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+
+import { useNavigate, Link as RouterLink } from 'react-router-dom';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
@@ -16,18 +16,23 @@ export default function LoginPage() {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async () => {
-    try {
-      const res = await axios.post('http://localhost:3001/login', {
-        username,
-        password,
-      });
 
-      localStorage.setItem('token', res.data.token);
-      setError('');
+  const handleLogin = async () => {
+    setError('');
+    try {
+      const response = await fetch('http://localhost:3001/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || 'Erro ao fazer login');
+      }
+      localStorage.setItem('token', data.token);
       navigate('/');
     } catch (err) {
-      setError(err.response?.data?.message || 'Erro ao fazer login');
+      setError(err.message);
     }
   };
 
@@ -53,7 +58,7 @@ export default function LoginPage() {
           onChange={(e) => setPassword(e.target.value)}
         />
         {error && (
-          <Typography color="error" variant="body2" mt={1}>
+          <Typography color="error" variant="body2" mt={1} textAlign="center">
             {error}
           </Typography>
         )}
@@ -62,6 +67,15 @@ export default function LoginPage() {
             Entrar
           </Button>
         </Box>
+        <Box mt={2} textAlign="center">
+          <Typography variant="body2">
+            Não tem uma conta?{' '}
+            <RouterLink to="/register" style={{ textDecoration: 'none', color: '#1976d2', fontWeight: 'bold' }}>
+              Crie uma agora
+            </RouterLink>
+          </Typography>
+        </Box>
+        
       </Paper>
     </Container>
   );

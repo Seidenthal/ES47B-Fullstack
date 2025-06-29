@@ -1,9 +1,9 @@
 import express from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import users from '../models/User.js';
-const router = express.Router();
+import { findByUsername, insertUser } from '../models/User.js';
 
+const router = express.Router();
 const SECRET = 'segredo_super_secreto';
 
 router.post('/login', async (req, res) => {
@@ -11,7 +11,7 @@ router.post('/login', async (req, res) => {
   if (!username || !password)
     return res.status(400).json({ message: 'Preencha todos os campos' });
 
-  const user = users.findByUsername(username);
+  const user = findByUsername(username); 
   if (!user) return res.status(401).json({ message: 'Usuário não encontrado' });
 
   const valid = await bcrypt.compare(password, user.password_hash);
@@ -29,8 +29,8 @@ router.post('/register', async (req, res) => {
   const hash = await bcrypt.hash(password, 10);
 
   try {
-    users.insertUser(username, hash);
-    res.status(201).json({ message: 'Usuário criado com sucesso' });
+    const newUser = insertUser(username, hash); 
+    res.status(201).json({ message: 'Usuário criado com sucesso', user: newUser });
   } catch (err) {
     res
       .status(400)

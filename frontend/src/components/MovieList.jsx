@@ -1,141 +1,94 @@
+// Arquivo: src/components/MovieList.js
+
 import { useContext, useEffect, useState } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, CircularProgress } from '@mui/material';
 import { AppContext } from '../contexts/AppReducerContext';
 import MovieCard from './MovieCard';
+import { useNavigate } from 'react-router-dom'; // Importe o useNavigate
 
 export default function MovieList() {
   const { state, dispatch } = useContext(AppContext);
-  const { movies, searchQuery, genre } = state;
+  const { movies } = state; // Por enquanto, só precisamos dos filmes do estado global
+  const navigate = useNavigate(); // Hook para fazer redirecionamento
 
-  const [page, setPage] = useState(1);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const fetchMovies = async (newPage) => {
-    if (loading) return;
+  // useEffect será usado para buscar os filmes quando o componente montar
+  useEffect(() => {
+    const fetchMoviesFromBackend = async () => {
+      setLoading(true);
+      setError(null);
 
-    setLoading(true);
-    try {
-      const apiKey = 'afa87e0b93ec3b58cd0c858af4c4c399';
-      let url = '';
+      const token = localStorage.getItem('token');
 
-      if (searchQuery) {
-        // Busca por nome
-        url = `https://api.themoviedb.org/3/search/multi?api_key=${apiKey}&query=${encodeURIComponent(
-          searchQuery,
-        )}&language=pt-BR&page=${newPage}`;
-      } else if (
-        genre &&
-        ((genre.movieId !== 0 && genre.movieId !== undefined) ||
-          (genre.tvId !== 0 && genre.tvId !== undefined))
-      ) {
-        const urls = [];
-
-        if (genre.movieId !== 0 && genre.movieId !== undefined) {
-          urls.push(
-            `https://api.themoviedb.org/3/discover/movie?api_key=${apiKey}&with_genres=${genre.movieId}&language=pt-BR&page=${newPage}`
-          );
-        }
-
-        if (genre.tvId !== 0 && genre.tvId !== undefined) {
-          urls.push(
-            `https://api.themoviedb.org/3/discover/tv?api_key=${apiKey}&with_genres=${genre.tvId}&language=pt-BR&page=${newPage}`
-          );
-        }
-
-        const results = [];
-
-        for (const url of urls) {
-          const res = await fetch(url);
-          const data = await res.json();
-          const type = url.includes('/movie') ? 'movie' : 'tv';
-
-          const formattedResults = data.results.map((item) => ({
-            ...item,
-            media_type: item.media_type || type,
-          }));
-
-          results.push(...formattedResults);
-        }
-
-        dispatch({
-          type: newPage === 1 ? 'SET_MOVIES' : 'ADD_MOVIES',
-          payload: results,
-        });
-
-        setPage(newPage);
+      // Se não há token, o usuário não está logado.
+      if (!token) {
+        // Redireciona para a página de login após um breve momento
+        setTimeout(() => navigate('/login'), 1500);
+        setError('Você precisa estar logado para ver os filmes.');
         setLoading(false);
         return;
-      } else {
-        // Tendências da semana
-        url = `https://api.themoviedb.org/3/trending/all/week?api_key=${apiKey}&language=pt-BR&page=${newPage}`;
       }
 
-      const res = await fetch(url);
-      const data = await res.json();
+      try {
+        // A URL agora aponta para o seu backend
+        const response = await fetch('http://localhost:3001/movies', {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          },
+        });
 
-      const results = data.results
-        .filter(
-          (item) =>
-            item.media_type === 'movie' ||
-            item.media_type === 'tv' ||
-            item.title ||
-            item.name,
-        )
-        .map((item) => ({
-          ...item,
-          media_type: item.media_type || (genre?.movieId ? 'movie' : 'tv'),
-        }));
+        if (!response.ok) {
+          // Se o token for inválido/expirado, o backend retornará um erro
+          if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('token'); // Limpa o token inválido
+            setTimeout(() => navigate('/login'), 1500);
+            throw new Error('Sua sessão expirou. Por favor, faça login novamente.');
+          }
+          throw new Error('Não foi possível carregar os filmes.');
+        }
 
-      dispatch({
-        type: newPage === 1 ? 'SET_MOVIES' : 'ADD_MOVIES',
-        payload: results,
-      });
+        const data = await response.json();
 
-      setPage(newPage);
-    } catch (err) {
-      console.error('Erro ao carregar mais filmes:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+        // ATENÇÃO: Seu backend retorna o array diretamente. Não usamos ".results"
+        dispatch({
+          type: 'SET_MOVIES',
+          payload: data,
+        });
 
-  // Carrega ao montar ou ao mudar busca/filtro
-  useEffect(() => {
-    setPage(1);
-    fetchMovies(1);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }, [searchQuery, genre]);
-
-  // Rola automaticamente para carregar mais
-  useEffect(() => {
-    const handleScroll = () => {
-      if (
-        window.innerHeight + document.documentElement.scrollTop + 100 >=
-        document.documentElement.scrollHeight &&
-        !loading
-      ) {
-        fetchMovies(page + 1);
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
       }
     };
 
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [page, loading, searchQuery, genre]);
+    fetchMoviesFromBackend();
+  }, [dispatch, navigate]); // Adicionados como dependências
 
+  // Renderização de Loading e Erro
+  if (loading) {
+    return <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}><CircularProgress /></Box>;
+  }
+
+  if (error) {
+    return <Typography color="error" textAlign="center" sx={{ mt: 5 }}>{error}</Typography>;
+  }
+
+  // Renderização da lista de filmes ou mensagem de "nenhum encontrado"
   if (!movies || movies.length === 0) {
-    return (
-      <Typography variant="body1">Nenhum resultado encontrado.</Typography>
-    );
+    return <Typography variant="body1" textAlign="center" sx={{ mt: 5 }}>Nenhum filme encontrado no seu banco de dados.</Typography>;
   }
 
   return (
     <Box
       display="grid"
       gridTemplateColumns="repeat(auto-fit, minmax(220px, 1fr))"
-      gap={2}
+      gap={3}
     >
       {movies.map((item) => (
-        <MovieCard key={`${item.id}-${item.media_type}`} item={item} />
+        <MovieCard key={`${item.id}-${item.title}`} item={item} />
       ))}
     </Box>
   );
