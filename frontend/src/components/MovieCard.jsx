@@ -161,7 +161,7 @@ export default function MovieCard({ item, compact = false }) {
   const imagePath = poster_path || poster_url;
 
   const imageUrl = imagePath
-    ? `https://image.tmdb.org/t/p/w500${poster_path}`
+    ? `https://image.tmdb.org/t/p/w500${imagePath}`
     : 'https://via.placeholder.com/500x750?text=Sem+Imagem';
   // cores: lightcyan, mediumslateblue, powderblue
   return (
