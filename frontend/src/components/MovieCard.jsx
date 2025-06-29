@@ -24,7 +24,10 @@ function formatDate(dateString) {
 
 export default function MovieCard({ item, compact = false }) {
   const { state, dispatch } = useContext(AppContext);
-  const isFavorite = state.favorites.some((f) => f.id === item.id);
+  // Verifica se é favorito comparando o TMDB ID
+  const isFavorite = state.favorites.some((f) => 
+    f.id === item.id || f.movie_tmdb_id === item.id
+  );
 
   const [open, setOpen] = useState(false);
   const [modalBgColor, setModalBgColor] = useState('');
@@ -58,8 +61,13 @@ export default function MovieCard({ item, compact = false }) {
     }
 
     // 2. Verifica se o filme já não é um favorito antes de fazer a chamada
-    if (isFavorite) {
+    const isAlreadyFavorite = state.favorites.some((f) => 
+      f.id === item.id || f.movie_tmdb_id === item.id
+    );
+    
+    if (isAlreadyFavorite) {
       console.log('Este filme já está nos favoritos.');
+      alert('Este filme já está nos seus favoritos!');
       return;
     }
 
@@ -79,6 +87,17 @@ export default function MovieCard({ item, compact = false }) {
 
       if (!response.ok) {
         const errorData = await response.json();
+        if (response.status === 409) {
+          // Filme já é favorito - atualiza o estado local se necessário
+          console.log('Filme já é favorito, sincronizando estado...');
+          const currentlyFavorite = state.favorites.some((f) => 
+            f.id === item.id || f.movie_tmdb_id === item.id
+          );
+          if (!currentlyFavorite) {
+            dispatch({ type: 'ADD_FAVORITE', payload: item });
+          }
+          return;
+        }
         throw new Error(errorData.message || 'Falha ao salvar o favorito no servidor.');
       }
 
@@ -92,8 +111,40 @@ export default function MovieCard({ item, compact = false }) {
     }
   };
 
-  const handleRemoveFavorite = () => {
-    dispatch({ type: 'REMOVE_FAVORITE', payload: item.id });
+  const handleRemoveFavorite = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Você precisa estar logado para remover favoritos!');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3001/favorites/${item.id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Falha ao remover favorito do servidor.';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (parseError) {
+          console.error('Erro ao fazer parse da resposta de erro:', parseError);
+          errorMessage = `Erro do servidor (${response.status}): ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Se a remoção no backend foi bem-sucedida, remove do estado local
+      dispatch({ type: 'REMOVE_FAVORITE', payload: item.id });
+      console.log('Favorito removido com sucesso!');
+    } catch (err) {
+      console.error('Erro em handleRemoveFavorite:', err);
+      alert(`Não foi possível remover dos favoritos: ${err.message}`);
+    }
   };
 
   const {
@@ -396,6 +447,8 @@ export default function MovieCard({ item, compact = false }) {
             onClick={(e) => {
               e.stopPropagation();
               if (compact) {
+                handleRemoveFavorite();
+              } else if (isFavorite) {
                 handleRemoveFavorite();
               } else {
                 handleAddFavorite();

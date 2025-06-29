@@ -19,11 +19,20 @@ export function reducer(state, action) {
     case 'SET_FAVORITES':
       return { ...state, favorites: action.payload };
     case 'ADD_FAVORITE':
+      // Evita duplicatas ao adicionar favoritos
+      const existingFavorite = state.favorites.find((f) => 
+        f.id === action.payload.id || f.movie_tmdb_id === action.payload.id
+      );
+      if (existingFavorite) {
+        return state;
+      }
       return { ...state, favorites: [...state.favorites, action.payload] };
     case 'REMOVE_FAVORITE':
       return {
         ...state,
-        favorites: state.favorites.filter((f) => f.id !== action.payload),
+        favorites: state.favorites.filter((f) => 
+          f.id !== action.payload && f.movie_tmdb_id !== action.payload
+        ),
       };
     case 'SET_SEARCH':
       return { ...state, searchQuery: action.payload };

@@ -19,7 +19,6 @@ function App() {
       const token = localStorage.getItem('token');
       if (token) {
         try {
-          // ...busque os favoritos no seu backend
           const response = await fetch('http://localhost:3001/favorites', {
             headers: { 'Authorization': `Bearer ${token}` }
           });
@@ -29,10 +28,15 @@ function App() {
           } else {
             // Se o token for inválido, limpe o localStorage
             localStorage.removeItem('token');
+            dispatch({ type: 'SET_FAVORITES', payload: [] });
           }
         } catch (error) {
           console.error('Erro ao buscar favoritos:', error);
+          dispatch({ type: 'SET_FAVORITES', payload: [] });
         }
+      } else {
+        // Usuário não logado, limpa favoritos
+        dispatch({ type: 'SET_FAVORITES', payload: [] });
       }
     };
     fetchUserFavorites();

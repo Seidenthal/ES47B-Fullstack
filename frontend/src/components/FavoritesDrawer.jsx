@@ -16,8 +16,40 @@ export default function FavoritesDrawer() {
   const { state, dispatch } = useContext(AppContext);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const handleRemove = (id) => {
-    dispatch({ type: 'REMOVE_FAVORITE', payload: id });
+  const handleRemove = async (id) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('Você precisa estar logado para remover favoritos!');
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3001/favorites/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        let errorMessage = 'Falha ao remover favorito do servidor.';
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.message || errorMessage;
+        } catch (parseError) {
+          console.error('Erro ao fazer parse da resposta de erro:', parseError);
+          errorMessage = `Erro do servidor (${response.status}): ${response.statusText}`;
+        }
+        throw new Error(errorMessage);
+      }
+
+      // Se a remoção no backend foi bem-sucedida, remove do estado local
+      dispatch({ type: 'REMOVE_FAVORITE', payload: id });
+      console.log('Favorito removido com sucesso!');
+    } catch (err) {
+      console.error('Erro em handleRemove:', err);
+      alert(`Não foi possível remover dos favoritos: ${err.message}`);
+    }
   };
 
   const filtered = state.favorites.filter((fav) =>
