@@ -57,16 +57,44 @@ router.get('/favorites', authenticateToken, (req, res) => {
 // Rota para adicionar favorito com validação expandida
 router.post('/favorites', 
   authenticateToken,
-  validateRequest({
-    movie_tmdb_id: serverValidation.movieId,
-    title: serverValidation.movieTitle,
-    poster_url: serverValidation.posterUrl
-  }),
   (req, res) => {
     try {
       const userId = req.user.id;
       const { ip, userAgent } = getClientInfo(req);
-      const movieData = req.validatedData;
+      
+      // Extrair dados do body com flexibilidade
+      const movieId = req.body.movieId || req.body.movie_tmdb_id || req.body.id;
+      const title = req.body.title;
+      const posterPath = req.body.poster_path || req.body.posterPath || req.body.poster_url || '';
+      
+      // Validações básicas
+      if (!movieId || !title) {
+        return res.status(400).json({
+          success: false,
+          message: 'movieId e title são obrigatórios'
+        });
+      }
+      
+      if (typeof movieId !== 'number' && isNaN(parseInt(movieId))) {
+        return res.status(400).json({
+          success: false,
+          message: 'movieId deve ser um número válido'
+        });
+      }
+      
+      if (typeof title !== 'string' || title.trim().length === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'title deve ser uma string não vazia'
+        });
+      }
+      
+      // Adaptar os dados para o formato esperado pelo modelo
+      const movieData = {
+        movie_tmdb_id: parseInt(movieId),
+        title: title.trim(),
+        poster_url: posterPath
+      };
       
       insertFavorite(userId, movieData);
       

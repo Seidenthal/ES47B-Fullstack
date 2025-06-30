@@ -168,17 +168,6 @@ npm run build        # Build para produção
 npm run preview      # Preview da build
 ```
 
-### HTTPS (Produção)
-```bash
-cd backend
-# Windows
-.\generate-certs.ps1
-# Linux/Mac
-./generate-certs.sh
-```
-
-## 📊 API Endpoints
-
 ### Autenticação
 - `POST /login` - Login de usuário
 - `POST /register` - Registro de usuário
@@ -237,6 +226,5 @@ Para a demonstração em vídeo, o projeto inclui:
 
 Projeto desenvolvido para ES47B - Programação Web Fullstack
 
----
-
-**Nota**: Este projeto atende integralmente aos requisitos especificados na proposta do Projeto 2, implementando todas as funcionalidades obrigatórias com foco em segurança, performance e boas práticas de desenvolvimento.
+- [@Seidenthal](https://github.com/Seidenthal)  
+- [@Cerronera](https://github.com/Cerronera)  
