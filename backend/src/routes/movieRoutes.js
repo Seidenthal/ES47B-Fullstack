@@ -128,30 +128,39 @@ router.post('/favorites',
 );
 
 // Rota para remover favorito com validação
-// Rota para remover favorito com validação
 router.delete('/favorites/:movieId', 
   authenticateToken,
-  validateRequest({
-    movieId: serverValidation.movieId
-  }),
   (req, res) => {
     try {
       const userId = req.user.id;
-      const movieId = req.validatedData.movieId;
+      const movieIdParam = req.params.movieId;
+      
+      // Validar o parâmetro movieId
+      const validation = serverValidation.movieId(movieIdParam);
+      if (!validation.valid) {
+        return res.status(400).json({
+          success: false,
+          message: validation.error
+        });
+      }
+      
+      const movieId = validation.value;
       const { ip, userAgent } = getClientInfo(req);
       
+      console.log(`DEBUG: Tentando deletar favorito - userId: ${userId}, movieId: ${movieId}`);
+      
       const result = deleteFavorite(userId, movieId);
+      console.log(`DEBUG: Resultado da deleção:`, result);
       
       if (result.changes === 0) {
-        securityLogger.logInsertion(userId, 'REMOVE_FAVORITE_FAILED', movieId, ip, userAgent, false, 'Favorito não encontrado');
+        console.log('DEBUG: Nenhuma linha foi afetada na deleção');
         return res.status(404).json({ 
           success: false,
           message: 'Favorito não encontrado.' 
         });
       }
       
-      // Log da remoção
-      securityLogger.logInsertion(userId, 'REMOVE_FAVORITE', movieId, ip, userAgent, true);
+      console.log('DEBUG: Favorito deletado com sucesso');
       
       res.status(200).json({ 
         success: true,
@@ -160,9 +169,6 @@ router.delete('/favorites/:movieId',
       
     } catch (err) {
       console.error('Erro na rota DELETE /favorites:', err);
-      const { ip, userAgent } = getClientInfo(req);
-      
-      securityLogger.logInsertion(req.user?.id, 'REMOVE_FAVORITE_ERROR', req.params.movieId, ip, userAgent, false, err.message);
       
       res.status(500).json({ 
         success: false,
