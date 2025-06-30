@@ -86,7 +86,13 @@ export default function MovieCard({ item, compact = false }) {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
+        let errorData;
+        try {
+          errorData = await response.json();
+        } catch {
+          errorData = { message: 'Erro desconhecido' };
+        }
+        
         if (response.status === 409) {
           // Filme já é favorito - atualiza o estado local se necessário
           console.log('Filme já é favorito, sincronizando estado...');
@@ -101,9 +107,16 @@ export default function MovieCard({ item, compact = false }) {
         throw new Error(errorData.message || 'Falha ao salvar o favorito no servidor.');
       }
 
-      // 4. Se a chamada ao backend for bem-sucedida, atualiza o estado local
-      console.log('Filme salvo no backend com sucesso!');
-      dispatch({ type: 'ADD_FAVORITE', payload: item });
+      // Parse da resposta JSON
+      const result = await response.json();
+      
+      if (result.success) {
+        // Se a chamada ao backend for bem-sucedida, atualiza o estado local
+        console.log('Filme salvo no backend com sucesso!');
+        dispatch({ type: 'ADD_FAVORITE', payload: item });
+      } else {
+        throw new Error(result.message || 'Falha ao salvar favorito');
+      }
 
     } catch (err) {
       console.error('Erro em handleAddFavorite:', err);
@@ -138,9 +151,16 @@ export default function MovieCard({ item, compact = false }) {
         throw new Error(errorMessage);
       }
 
-      // Se a remoção no backend foi bem-sucedida, remove do estado local
-      dispatch({ type: 'REMOVE_FAVORITE', payload: item.id });
-      console.log('Favorito removido com sucesso!');
+      // Parse da resposta JSON
+      const result = await response.json();
+      
+      if (result.success) {
+        // Se a remoção no backend foi bem-sucedida, remove do estado local
+        dispatch({ type: 'REMOVE_FAVORITE', payload: item.id });
+        console.log('Favorito removido com sucesso!');
+      } else {
+        throw new Error(result.message || 'Falha ao remover favorito');
+      }
     } catch (err) {
       console.error('Erro em handleRemoveFavorite:', err);
       alert(`Não foi possível remover dos favoritos: ${err.message}`);

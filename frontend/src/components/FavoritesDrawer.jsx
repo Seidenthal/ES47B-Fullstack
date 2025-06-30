@@ -43,9 +43,16 @@ export default function FavoritesDrawer() {
         throw new Error(errorMessage);
       }
 
-      // Se a remoção no backend foi bem-sucedida, remove do estado local
-      dispatch({ type: 'REMOVE_FAVORITE', payload: id });
-      console.log('Favorito removido com sucesso!');
+      // Parse da resposta JSON
+      const result = await response.json();
+      
+      if (result.success) {
+        // Se a remoção no backend foi bem-sucedida, remove do estado local
+        dispatch({ type: 'REMOVE_FAVORITE', payload: id });
+        console.log('Favorito removido com sucesso!');
+      } else {
+        throw new Error(result.message || 'Falha ao remover favorito');
+      }
     } catch (err) {
       console.error('Erro em handleRemove:', err);
       alert(`Não foi possível remover dos favoritos: ${err.message}`);

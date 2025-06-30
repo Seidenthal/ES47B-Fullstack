@@ -48,11 +48,15 @@ export default function RegisterPage() {
         throw new Error(data.message || 'Erro ao criar usuário.');
       }
 
-      setSuccess('Usuário criado com sucesso! Redirecionando para o login...');
-      
-      setTimeout(() => {
-        navigate('/login');
-      }, 2000);
+      if (data.success) {
+        setSuccess('Usuário criado com sucesso! Redirecionando para o login...');
+        
+        setTimeout(() => {
+          navigate('/login');
+        }, 2000);
+      } else {
+        throw new Error(data.message || 'Falha ao criar usuário');
+      }
 
     } catch (err) {
       setError(err.message);

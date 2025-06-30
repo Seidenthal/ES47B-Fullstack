@@ -25,12 +25,19 @@ export default function LoginPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password }),
       });
+      
       const data = await response.json();
+      
       if (!response.ok) {
         throw new Error(data.message || 'Erro ao fazer login');
       }
-      localStorage.setItem('token', data.token);
-      navigate('/');
+      
+      if (data.success && data.token) {
+        localStorage.setItem('token', data.token);
+        navigate('/');
+      } else {
+        throw new Error(data.message || 'Token não encontrado na resposta');
+      }
     } catch (err) {
       setError(err.message);
     }

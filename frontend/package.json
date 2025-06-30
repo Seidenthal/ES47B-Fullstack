@@ -5,8 +5,11 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build:prod": "vite build --mode production",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "analyze": "vite build --mode analyze",
+    "clean": "rm -rf dist"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",
