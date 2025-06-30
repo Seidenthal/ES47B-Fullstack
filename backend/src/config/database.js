@@ -47,6 +47,22 @@ const initializeTables = () => {
       FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
     )
   `).run();
+  // Tabela de filmes (catálogo local)
+  db.prepare(`
+    CREATE TABLE IF NOT EXISTS movies (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      tmdb_id INTEGER UNIQUE,
+      title TEXT NOT NULL,
+      overview TEXT,
+      poster_path TEXT,
+      release_date TEXT,
+      year INTEGER,
+      genre_ids TEXT,
+      vote_average REAL,
+      vote_count INTEGER,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `).run();
 
   // Tabela de logs de segurança
   db.prepare(`
