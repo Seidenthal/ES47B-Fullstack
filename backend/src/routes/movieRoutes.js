@@ -100,6 +100,7 @@ router.post('/favorites',
 );
 
 // Rota para remover favorito com validação
+// Rota para remover favorito com validação
 router.delete('/favorites/:movieId', 
   authenticateToken,
   validateRequest({
