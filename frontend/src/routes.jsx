@@ -5,7 +5,7 @@ import RegisterPage from './pages/RegisterPage';
 
 export default function AppRoutes() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename="/ES47B-Fullstack/">
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/login" element={<LoginPage />} />
